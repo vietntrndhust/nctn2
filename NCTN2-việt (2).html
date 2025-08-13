@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hệ thống Phiếu Yêu Cầu NCTN 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary-blue': '#ef4444',
+            'sidebar': '#0f172a',
+            'sidebar-hover': '#1e293b',
+            'muted': '#f8fafc',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .spinner {
+      border: 2px solid #e5e7eb;
+      border-top: 2px solid #ef4444;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+
+    /* Header and section styling to match index.html */
+    .header-container {
+      background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Page background image per request */
+    body {
+      background-image: linear-gradient(rgba(239,68,68,0.08), rgba(239,68,68,0.08)), url('https://pixabay.com/vi/photos/search/l%C3%A1%20%C4%91%E1%BB%8F/');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+    }
+    .header-container::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+    .header-badge {
+      background-color: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
+    .header-line { width: 60px; height: 4px; background: linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 100%); border-radius: 2px; }
+
+    .form-section { border: 1px solid #e5e7eb; border-radius: 12px; transition: box-shadow 0.2s ease; }
+    .form-section:hover { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1), 0 1px 3px rgba(37, 99, 235, 0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+      border-radius: 9999px;
+      position: relative;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 7px 14px rgba(37, 99, 235, 0.12), 0 3px 6px rgba(37, 99, 235, 0.08); filter: brightness(1.03); }
+    .submit-btn:active { transform: translateY(0); opacity: 0.95; }
+    /* Section cards for Form 1 */
+    .section-card { border: 1px solid transparent; border-radius: 12px; padding: 16px; }
+    .section-a { background: #fef2f2; border-color: #fecaca; }
+    .section-b { background: #d7e5f3; border-color: #72b2ee; }
+    .section-c { background: #fffbeb; border-color: #fde68a; }
+    .section-d { background: #faf5ff; border-color: #e9d5ff; }
+  </style>
+</head>
+<body class="bg-muted min-h-screen flex text-gray-800" style="font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'">
+<!-- Sidebar -->
+  <aside class="w-56 min-h-screen bg-sidebar text-white flex flex-col py-8 px-4 shadow-lg">
+    <h1 class="text-xl font-bold tracking-wide pb-6 border-b border-red-200 mb-4">Cổng Tác Vụ NCTN 2</h1>
+    <nav class="flex flex-col gap-2 mt-2">
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="testRequest">Phiếu Yêu Cầu Thử Nghiệm</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="taskTracking">Theo dõi Công việc</button>
+      
+    </nav>
+  </aside>
+  <!-- Form Sections -->
+  <main class="flex-1 py-12 flex flex-col items-center justify-center min-h-screen overflow-y-auto">
+    <div class="header-container relative w-full max-w-5xl rounded-xl overflow-hidden mb-8">
+      <div class="relative z-10 p-8 md:p-10">
+        <div class="flex items-center space-x-2 mb-3">
+          <div class="inline-block header-badge px-3 py-1 rounded-full text-xs font-semibold text-white">Phòng NCTN 2</div>
+          <div class="header-line hidden md:block"></div>
+        </div>
+        <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">Cổng Yêu Cầu NCTN 2</h2>
+        <p class="text-red-100 text-sm md:text-base">Tổng hợp phiếu thử nghiệm và tiến độ công việc</p>
+      </div>
+    </div>
+    <!-- Test Request Form -->
+    <section id="testRequest" class="form-section w-full max-w-4xl bg-white p-8 rounded-lg shadow-md hidden">
+      <div class="mb-8">
+        <h2 class="text-3xl font-extrabold text-primary-blue tracking-wide mb-1">Phiếu Yêu Cầu Thử Nghiệm</h2>
+        <div class="h-1 w-16 bg-primary-blue mb-2 rounded"></div>
+        <p class="text-base text-gray-500">Vui lòng điền đầy đủ các mục bắt buộc cho sản phẩm/linh kiện cần thử nghiệm. Biểu mẫu sẽ tự động thay đổi theo lựa chọn của bạn.</p>
+      </div>
+      <form id="testRequestForm" class="space-y-6" autocomplete="off">
+        <!-- A. General Information -->
+        <div class="section-card section-a">
+          <h3 class="text-lg font-semibold text-primary-blue mb-2">A. Thông tin chung</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Họ tên người gửi</label>
+              <input required name="senderName" type="text" class="input-field"/>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Email</label>
+              <input required name="senderEmail" type="email" class="input-field"/>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Ngày gửi yêu cầu</label>
+              <input name="requestDate" type="datetime-local" class="input-field" readonly id="testRequestDate"/>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Phòng ban yêu cầu</label>
+              <select required name="department" class="input-field">
+                <option value="">Chọn phòng ban *</option>
+               <option>Mua hàng</option><option>SC</option><option>SC2</option><option>KTSX</option><option>KTSP</option>
+                <option>TKCK</option><option>KTCN</option><option>NCTN</option><option>TKĐT</option>
+                 <option>QA/QC nhà máy</option><option>NCTN 2</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- B. Product/Component Information -->
+        <div class="section-card section-b">
+          <h3 class="text-lg font-semibold text-primary-blue mb-2">B. Thông tin sản phẩm/linh kiện</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Tên sản phẩm/linh kiện</label>
+              <input required name="productName" type="text" class="input-field"/>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Mã sản phẩm/linh kiện</label>
+              <input required name="productCode" type="text" class="input-field"/>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Lần gửi mẫu</label>
+              <input name="sampleSubmissionNo" id="sampleSubmissionNo" type="number" min="1" class="input-field"/>
+            </div>
+            <div id="testRequestChangeNote" class="hidden md:col-span-2 space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Mô tả thay đổi so với lần trước</label>
+              <input type="text" name="changeFromLastNote" placeholder="Mô tả thay đổi so với lần trước" class="input-field"/>
+            </div>
+            <div class="space-y-1 md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700">Mục đích yêu cầu</label>
+              <select required name="requestPurpose" id="requestPurpose" class="input-field">
+                <option value="">Chọn mục đích *</option>
+                <option value="Đánh giá SP mới">Đánh giá SP mới</option>
+                <option value="Đánh giá thay đổi nhà cung cấp">Đánh giá thay đổi nhà cung cấp</option>
+                <option value="Đánh giá thay đổi 4M">Đánh giá thay đổi 4M</option>
+                <option value="Phản hồi lỗi thị trường">Phản hồi lỗi thị trường</option>
+                <option value="Kiểm tra định kỳ nội bộ">Kiểm tra định kỳ nội bộ</option>
+                <option value="Đánh giá đề xuất cải tiến">Đánh giá đề xuất cải tiến</option>
+                <option value="Phối hợp nghiên cứu công nghệ">Phối hợp nghiên cứu công nghệ</option>
+                <option value="Yêu cầu từ khách hàng/bên thứ 3">Yêu cầu từ khách hàng/bên thứ 3</option>
+              </select>
+            </div>
+            <div id="purposeDescription" class="text-gray-600 text-sm md:col-span-2"></div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Nhà cung cấp</label>
+              <input name="supplier" required type="text" class="input-field"/>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Số lượng mẫu giao</label>
+              <input name="numSamples" type="number" min="0" required class="input-field"/>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Hạn mong muốn có kết quả</label>
+              <input name="desiredCompletionDate" type="date" required class="input-field"/>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">Người đã nhận mẫu</label>
+              <select name="personReceived" required class="input-field">
+                <option value="">Chọn người đã nhận mẫu *</option>
+                <option>Vũ Duy Minh</option>
+                <option>Nguyễn Thế Việt</option>
+              </select>
+            </div>
+            <div class="space-y-1 md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700">Ghi chú</label>
+              <textarea name="notes" rows="2" class="input-field" placeholder="Điểm thay đổi, lý do yêu cầu gấp..."></textarea>
+            </div>
+          </div>
+        </div>
+        <!-- C. Required Testing Information -->
+        <div class="section-card section-c">
+          <h3 class="text-lg font-semibold text-primary-blue mb-2">C. Thông tin thử nghiệm yêu cầu</h3>
+          <div class="flex items-center gap-8 pb-2">
+            <label class="flex items-center"><input type="radio" class="mr-2" name="testType" value="standard" checked>Kiểm tra mặc định theo tiêu chuẩn kỹ thuật</label>
+            <label class="flex items-center"><input type="radio" class="mr-2" name="testType" value="special">Kiểm tra đặc biệt theo yêu cầu</label>
+          </div>
+          <div id="specialTestFields" class="hidden pb-2 border border-primary-blue rounded p-4 bg-blue-50">
+            <label for="specialRequestDesc" class="block text-sm text-gray-700 mb-2">Mô tả kiểm tra đặc biệt <span class="text-red-600">*</span></label>
+            <input type="text" id="specialRequestDesc" name="specialRequestDesc" class="input-field" placeholder="Mô tả chi tiết hạng mục kiểm tra, tiêu chuẩn áp dụng..." required disabled />
+          </div>
+        </div>
+        <!-- D. Attachments -->
+        <div class="section-card section-d">
+          <h3 class="text-lg font-semibold text-primary-blue mb-2">D. Tài liệu đính kèm</h3>
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700">Tệp đính kèm</label>
+            <input multiple type="file" id="testRequestFiles" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
+          </div>
+          <div id="testRequestUploadList" class="mt-2 flex flex-col gap-2"></div>
+          <p class="mt-2 text-xs text-gray-500">Tên file PHẢI bằng chữ và số, không sử dụng ký tự đặc biệt để tránh lỗi.</p>
+        </div>
+        <!-- Keep data after submit -->
+        <label class="mt-3 flex items-center text-sm text-gray-600">
+          <input type="checkbox" id="keepDataAfterSubmit" class="mr-2">
+          Giữ dữ liệu sau khi gửi. (Dữ liệu đã nhập sẽ không bị xóa sau khi nhấn gửi)
+        </label>
+        <button type="submit" class="submit-btn w-full mt-4 py-3 text-white font-semibold text-lg transition flex items-center justify-center gap-2">
+          <span>Gửi yêu cầu</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+        </button>
+      </form>
+    </section>
+    <!-- Task Tracking -->
+    <section id="taskTracking" class="form-section w-full max-w-7xl bg-white p-8 rounded-lg shadow-md hidden">
+      <div class="mb-8">
+        <h2 class="text-3xl font-extrabold text-primary-blue tracking-wide mb-1">Theo dõi Công việc</h2>
+        <div class="h-1 w-16 bg-primary-blue mb-2 rounded"></div>
+        <p class="text-base text-gray-500">Theo dõi các công việc đã gửi kèm trạng thái và thời hạn đáp ứng.</p>
+      </div>
+      <form id="taskTrackingForm" class="mb-8 space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Email người gửi</label>
+            <input name="senderEmail" type="email" placeholder="Nhập email người gửi" class="input-field h-12"/>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Phòng ban yêu cầu</label>
+            <select name="department" class="input-field h-12">
+              <option value="">Chọn phòng ban</option>
+               <option>Mua hàng</option><option>SC</option><option>SC2</option><option>KTSX</option><option>KTSP</option>
+              <option>TKCK</option><option>KTCN</option><option>NCTN</option><option>TKĐT</option>
+              <option>QA/QC nhà máy</option><option>DQA</option>
+            </select>
+          </div>
+        </div>
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-blue-700">
+                <span class="font-medium">Lưu ý:</span> Phải nhập ít nhất một trong hai trường trên để tìm kiếm.
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- Response field mapping params (backend can use these to shape response) -->
+        <div class="hidden">
+          <input type="hidden" name="resp_ngay_gui" value="submissionDate" />
+          <input type="hidden" name="resp_ten_cong_viec" value="task-name" />
+          <input type="hidden" name="resp_han_mong_muon" value="desiredDueDate" />
+          <input type="hidden" name="resp_ngay_hoan_thanh" value="completionDate" />
+          <input type="hidden" name="resp_phu_trach" value="pic" />
+          <input type="hidden" name="resp_trang_thai" value="status" />
+          <input type="hidden" name="resp_nguoi_giao_viec" value="assigner" />
+        </div>
+        <div class="flex justify-end">
+          <button id="taskTrackingSearchBtn" type="submit" class="submit-btn px-8 py-3 rounded-lg text-white font-semibold transition text-base">🔍 Tìm kiếm</button>
+        </div>
+      </form>
+      <div class="overflow-x-auto shadow-lg rounded-lg border border-gray-200">
+        <table id="trackingTable" class="min-w-full text-sm border-collapse">
+          <thead>
+            <tr class="bg-gradient-to-r from-red-500 to-red-700 text-white">
+              <th class="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Người yêu cầu</th>
+              <th class="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Ngày gửi</th>
+              <th class="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Hạn mong muốn</th>
+              <th class="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Hạn đáp ứng</th>
+              <th class="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Tên công việc</th>
+              <th class="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Phụ trách</th>
+              <th class="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="trackingTableBody" class="bg-white text-gray-900 divide-y divide-gray-200">
+            <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500 text-base">Nhấn Tìm kiếm để tải trạng thái công việc.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    
+  </main>
+  <!-- Common Styles -->
+  <style>
+    .input-field {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #fca5a5; /* red-300 */
+      border-radius: 0.5rem; /* rounded */
+      background-color: #f1f5f9; /* muted */
+      transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+      outline: none;
+    }
+    .input-field:focus {
+      border-color: #ef4444; /* primary-red */
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); /* ring-red-200 */
+      background-color: #ffffff;
+    }
+    .input-field::placeholder {
+      color: #9ca3af; /* gray-400 */
+    }
+    .input-field:read-only {
+      background: #e5e7eb; /* gray-200 */
+      color: #6b7280; /* gray-500 */
+    }
+  </style>
+  <!-- JavaScript for dynamic logic/features -->
+  <script>
+    // Endpoints for Form 1 (Test Request)
+      const SHEETDB_API_URL = "https://sheetdb.io/api/v1/bj5gyytpp16fa";
+      const UPLOAD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxa_KK_PO544DNTK9vE3AMjkkDe-bpOXZ9DRgdhvnGu6ngBDvnNRhuaP40m5VXvL7sTjA/exec";
+    // Sidebar navigation logic
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const formSections = document.querySelectorAll('.form-section');
+    function showSection(id) {
+      formSections.forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
+    navBtns.forEach(btn => {
+      btn.onclick = () => {
+        navBtns.forEach(b => b.classList.remove('bg-primary-blue', 'font-bold'));
+        btn.classList.add('bg-primary-blue', 'font-bold');
+        showSection(btn.getAttribute('data-target'));
+      };
+    });
+    // Show first form by default
+    navBtns[0].classList.add('bg-primary-blue', 'font-bold');
+    showSection(navBtns[0].getAttribute('data-target'));
+
+    // Set default current local date+time for date fields on load
+    function setCurrentDateTime(id) {
+      const dt = new Date();
+      const tzOffsetMs = dt.getTimezoneOffset() * 60000;
+      const localISO = new Date(dt.getTime() - tzOffsetMs).toISOString().slice(0, 16);
+      const el = document.getElementById(id);
+      if (el) el.value = localISO;
+    }
+    setCurrentDateTime('testRequestDate');
+    // Gợi ý: trường "Hạn mong muốn có kết quả" đã có nhãn hiển thị, người dùng tự nhập
+
+    // Dynamic fields logic for Test Request Form
+    // a. Purpose dropdown description
+    const purposeDescriptions = {
+      "Đánh giá SP mới": "Sản phẩm/linh kiện mới sắp SOP, cần kiểm tra độ bền và phù hợp tiêu chuẩn kỹ thuật trước khi sản xuất đại trà.",
+      "Đánh giá thay đổi nhà cung cấp": "Linh kiện/sản phẩm thay đổi nhà cung cấp; cần kiểm tra lại để đảm bảo chất lượng không bị ảnh hưởng.",
+      "Đánh giá thay đổi 4M": "Có thay đổi về Vật liệu, Máy móc, Phương pháp, Nhân sự; cần đánh giá rủi ro liên quan.",
+      "Phản hồi lỗi thị trường": "Sản phẩm đang sử dụng phát sinh khiếu nại/lỗi từ thị trường; kiểm tra lại để xác định nguyên nhân.",
+      "Kiểm tra định kỳ nội bộ": "Thử nghiệm theo kế hoạch nội bộ (QA, MKT, kiểm định/hiệu chuẩn thiết bị định kỳ).",
+      "Đánh giá đề xuất cải tiến": "Đề xuất cải tiến về thiết kế/cấu trúc/chi phí; cần xác nhận bằng thử nghiệm.",
+      "Phối hợp nghiên cứu công nghệ": "Kiểm tra đặc tính/tính năng kỹ thuật trong quá trình nghiên cứu, phối hợp phát triển công nghệ mới.",
+      "Yêu cầu từ khách hàng/bên thứ 3": "Yêu cầu xác nhận kỹ thuật theo tiêu chuẩn riêng của khách hàng/đối tác/bên thứ ba.",
+    };
+    document.getElementById('requestPurpose').onchange = (e)=>{
+      const desc = purposeDescriptions[e.target.value] || "";
+      document.getElementById('purposeDescription').textContent = desc;
+    };
+    // b. Sample submission number
+    document.getElementById('sampleSubmissionNo').oninput = (e)=>{
+      document.getElementById('testRequestChangeNote').classList.toggle('hidden', e.target.value < 2);
+    };
+
+    // c. Special test toggle: show single required input when selected
+    document.querySelectorAll('input[name="testType"]').forEach(radio=>{
+      radio.onchange = ()=>{
+        const container = document.getElementById('specialTestFields');
+        const input = document.getElementById('specialRequestDesc');
+        const show = radio.value === 'special' && radio.checked;
+        container.classList.toggle('hidden', !show);
+        if (input) input.disabled = !show;
+      };
+    });
+
+    // File upload widget logic (for all file fields)
+    function uploadFiles(inputId, uploadListId, endpoint, cb) {
+      const fileInput = document.getElementById(inputId);
+      const uploadList = document.getElementById(uploadListId);
+      let filesArr = [];
+      function getIcon(ext=""){ return "📄"; }
+
+      fileInput.addEventListener("change", async function(){
+        for(const file of fileInput.files){
+          const idx = filesArr.length;
+          filesArr.push({ file, state: "uploading", link: null });
+          const itemDiv = document.createElement('div');
+          itemDiv.className = "flex items-center justify-between p-2 bg-blue-50 rounded";
+          itemDiv.innerHTML = `
+            <span>${getIcon(file.name.split('.').pop())}<span class="ml-2">${file.name}</span></span>
+            <span class="spinner"></span>
+            <button class="ml-4 text-red-600 hover:underline font-bold hidden" type="button">X</button>
+          `;
+          uploadList.appendChild(itemDiv);
+
+          // Start uploading
+          const reader = new FileReader();
+          reader.onload = async function(e){
+            // Send base64 to endpoint
+            const payload = {
+              filedata: e.target.result.split(",")[1],
+              filename: file.name,
+              mimetype: file.type
+            };
+            fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ data: [payload] })
+            })
+            .then(r => r.json()) // assume the API returns a JSON containing the public link
+            .then(data => {
+              // For demo, just fake the link
+              const link = data.public_url || (data.data && data.data[0]?.url) || "#";
+              filesArr[idx].state = "done";
+              filesArr[idx].link = link;
+              itemDiv.querySelector(".spinner").outerHTML = `<a href="${link}" target="_blank" class="text-primary-blue underline">Xem</a>`;
+              itemDiv.querySelector('button').classList.remove("hidden");
+              cb && cb(filesArr.map(u=>u.link));
+            })
+            .catch(err=>{
+              itemDiv.querySelector(".spinner").outerHTML = `<span class="text-red-500">Thất bại</span>`;
+              cb && cb(filesArr.map(u=>u.link));
+            });
+          };
+          reader.readAsDataURL(file);
+
+          // Delete logic
+          itemDiv.querySelector("button").onclick = ()=>{
+            itemDiv.remove();
+            filesArr[idx]=null;
+            cb && cb(filesArr.filter(Boolean).map(u=>u.link));
+          };
+        }
+        // Reset input
+        fileInput.value = "";
+      });
+      return ()=>filesArr.filter(Boolean).map(u=>({
+        file: u.file,
+        link: u.link
+      }));
+    }
+
+    // Use upload widgets on each form
+    let testRequestUploads = [];
+    // Specialized uploader for Form 1 using Google Apps Script
+    (function setupTestRequestUploads(){
+      const fileInput = document.getElementById('testRequestFiles');
+      const uploadList = document.getElementById('testRequestUploadList');
+      testRequestUploads = [];
+      function renderItem(name, url){
+        const itemDiv = document.createElement('div');
+        itemDiv.className = "flex items-center justify-between p-2 bg-blue-50 rounded";
+        itemDiv.innerHTML = `
+          <span>📄<span class="ml-2">${name}</span></span>
+          <a href="${url}" target="_blank" class="text-primary-blue underline">Xem</a>
+          <button class="ml-4 text-red-600 hover:underline font-bold" type="button">X</button>
+        `;
+        const idx = testRequestUploads.length;
+        testRequestUploads.push({ name, url });
+        itemDiv.querySelector('button').onclick = ()=>{
+          itemDiv.remove();
+          testRequestUploads[idx] = null;
+        };
+        uploadList.appendChild(itemDiv);
+      }
+      fileInput.addEventListener('change', async function(){
+        if (!this.files || this.files.length === 0) return;
+        for (const file of this.files){
+          // Create a row with spinner first
+          const rowDiv = document.createElement('div');
+          rowDiv.className = "flex items-center justify-between p-2 bg-blue-50 rounded";
+          rowDiv.innerHTML = `
+            <span>📄<span class=\"ml-2\">${file.name}</span></span>
+            <span class=\"spinner\"></span>
+          `;
+          uploadList.appendChild(rowDiv);
+          try{
+            const url = await new Promise((resolve, reject)=>{
+              const reader = new FileReader();
+              reader.onload = async ()=>{
+                try{
+                  const base64 = reader.result.split(',')[1];
+                  const form = new URLSearchParams();
+                  form.append('filedata', base64);
+                  form.append('filename', file.name);
+                  form.append('mimetype', file.type);
+                  const resp = await fetch(UPLOAD_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: form.toString()
+                  });
+                  if(!resp.ok) throw new Error('Upload failed');
+                  const raw = await resp.text();
+                  let parsedUrl = '';
+                  try{
+                    const j = JSON.parse(raw);
+                    parsedUrl = j.url || j.fileUrl || j.public_url || j.link || (j.data && j.data[0] && j.data[0].url) || '';
+                  }catch(_){
+                    const match = (raw || '').match(/https?:\/\/[^\s"']+/);
+                    parsedUrl = match ? match[0] : '';
+                  }
+                  resolve(parsedUrl || '#');
+                }catch(err){ reject(err); }
+              };
+              reader.onerror = ()=>reject(new Error('File read error'));
+              reader.readAsDataURL(file);
+            });
+            // Update the same row in place to show link and delete button
+            const idx = testRequestUploads.length;
+            testRequestUploads.push({ name: file.name, url });
+            rowDiv.innerHTML = `
+              <span>📄<span class=\"ml-2\">${file.name}</span></span>
+              <span class=\"text-green-700 bg-green-100 px-2 py-0.5 rounded text-xs\">Đã tải lên</span>
+              <span class=\"flex items-center gap-3\">
+                <a href=\"${url}\" target=\"_blank\" class=\"text-primary-blue underline\">Xem</a>
+                <button class=\"ml-2 text-red-600 hover:underline font-bold\" type=\"button\">X</button>
+              </span>
+            `;
+            rowDiv.querySelector('button').onclick = ()=>{
+              rowDiv.remove();
+              testRequestUploads[idx] = null;
+            };
+          }catch(err){
+            const spinnerEl = rowDiv.querySelector('.spinner');
+            if (spinnerEl) spinnerEl.outerHTML = `<span class=\"text-red-600\">Thất bại</span>`;
+            setTimeout(()=>{ try{ uploadList.removeChild(rowDiv);}catch(_){} }, 2000);
+          }
+        }
+        this.value = '';
+      });
+    })();
+    // internal forms moved to DQA_internal.html
+
+    // Form submit logic (for main forms)
+    function toJSON(form){
+      const d = {};
+      new FormData(form).forEach((val,key)=>{
+        if(d[key])
+          d[key] = [].concat(d[key],val);
+        else
+          d[key]=val;
+      });
+      return d;
+    }
+    function submitForm(formId, endpoint, getUploads){
+      document.getElementById(formId).onsubmit = async function(e){
+        e.preventDefault();
+        // Confirmation popup for Form 1 before sending
+        if (formId === 'testRequestForm') {
+          const confirmed = window.confirm('Bằng việc xác nhận gửi yêu cầu, bạn cam kết mẫu đã được gửi đúng và đủ đến NCTN 2.');
+          if (!confirmed) return;
+        }
+        const btn = this.querySelector("button[type=submit]");
+        const originalLabel = btn ? btn.textContent : "";
+        btn.disabled = true;
+        btn.innerHTML = "<span class='spinner'></span>";
+        let data = toJSON(this);
+        let reqBody;
+        if(getUploads){
+          if(formId === "testRequestForm"){
+            const uploads = getUploads();
+            const valid = (uploads || []).filter(Boolean);
+            data.attachments = valid.map(u=>u.name || '').join(';');
+            data.attachmentUrls = valid.map(u=>u.url || '').join(';');
+          } else {
+          data.attachments = getUploads();
+        }
+        }
+        if(formId==="testRequestForm"){
+          // Map to index.html schema; replace removed checkbox fields with Specialreq
+          const isSpecial = data.testType === 'special';
+          const submissionRound = parseInt(data.sampleSubmissionNo || '0', 10) || 0;
+          const normalizedRequestDate = (data.requestDate || '').toString().slice(0,10);
+          const normalizedDesiredDate = (data.desiredCompletionDate || '').toString().slice(0,10);
+          
+          // Ensure all required fields have valid values
+          const mapped = {
+            requesterName: String(data.senderName || '').trim(),
+            email: String(data.senderEmail || '').trim(),
+            requestDate: String(normalizedRequestDate || '').trim(),
+            deptRequest: String(data.department || '').trim(),
+            itemName: String(data.productName || '').trim(),
+            itemCode: String(data.productCode || '').trim(),
+            purpose: String(data.requestPurpose || '').trim(),
+            vendor: String(data.supplier || '').trim(),
+            qtySamples: String(data.numSamples || '').trim(),
+            desiredDate: String(normalizedDesiredDate || '').trim(),
+            changeReq: String(data.notes || '').trim(),
+            kiemtraDefault: isSpecial ? '0' : '1',
+            kiemtraDacBiet: isSpecial ? '1' : '0',
+            Receiver: String(data.personReceived || '').trim(),
+            isResubmission: submissionRound >= 2 ? '1' : '0',
+            // Legacy checkbox fields kept for schema compatibility but left empty
+            chiSoCoBan: '0',
+            chiSoCoBanDesc: '',
+            tinhNang: '0',
+            tinhNangDesc: '',
+            diemNG: '0',
+            diemNGDesc: '',
+            testBen: '0',
+            testBenDesc: '',
+            khacTest: '0',
+            khacTestDesc: '',
+            // Replaced group by a single field as requested
+            SpecialReq: String(isSpecial ? (document.getElementById('specialRequestDesc')?.value || '') : '').trim(),
+            attachments: String(data.attachments || '').trim()
+          };
+          
+          // Ensure all fields are present and have valid string values
+          const flat = {};
+          Object.keys(mapped).forEach(k => { 
+            flat[k] = mapped[k] || ''; // Use empty string for null/undefined/empty values
+          });
+          
+          reqBody = { data: flat };
+        } else {
+          // other forms unchanged
+          reqBody = { data: [data] };
+        }
+        try{
+          const resp = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(reqBody)
+          });
+          if(resp.ok){
+            btn.innerHTML="Đã gửi!";
+            btn.classList.add("bg-green-600");
+            setTimeout(()=>{btn.innerHTML=originalLabel;btn.disabled=false;btn.classList.remove("bg-green-600")},20000);
+            // Reset only when user does not want to keep data
+            if(!(formId === 'testRequestForm' && document.getElementById('keepDataAfterSubmit')?.checked)){
+            this.reset();
+              // restore current datetime for readonly field
+              const dtEl = document.getElementById('testRequestDate');
+              if (dtEl) {
+                const now = new Date();
+                const tz = now.getTimezoneOffset() * 60000;
+                dtEl.value = new Date(now.getTime() - tz).toISOString().slice(0, 16);
+              }
+            }
+          }else {
+            const text = await resp.text();
+            throw new Error(text || `HTTP ${resp.status}`);
+          }
+        }catch(err){
+          // Fallback: if SheetDB rejects due to bad data format, retry with basic columns only
+          if (formId === 'testRequestForm' && /bad data format/i.test(String(err.message || err))) {
+            try {
+              const isSpecial = data.testType === 'special';
+              const noteCombined = `${data.notes || ''}${isSpecial ? `\nSpecialreq: ${(document.getElementById('specialRequestDesc')?.value || '')}` : ''}`.trim();
+              const normalizedRequestDate2 = (data.requestDate || '').toString().slice(0,10);
+              const normalizedDesiredDate2 = (data.desiredCompletionDate || '').toString().slice(0,10);
+              const basic = {
+                requesterName: String(data.senderName || ''),
+                email: String(data.senderEmail || ''),
+                requestDate: String(normalizedRequestDate2 || ''),
+                deptRequest: String(data.department || ''),
+                itemName: String(data.productName || ''),
+                itemCode: String(data.productCode || ''),
+                purpose: String(data.requestPurpose || ''),
+                vendor: String(data.supplier || ''),
+                qtySamples: String(data.numSamples || ''),
+                desiredDate: String(normalizedDesiredDate2 || ''),
+                changeReq: noteCombined,
+                attachments: String(data.attachments || '')
+              };
+              const fallbackBody = { data: basic };
+              const resp2 = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(fallbackBody)
+              });
+              if (resp2.ok) {
+                btn.innerHTML = 'Đã gửi!';
+                btn.classList.add('bg-green-600');
+                setTimeout(()=>{btn.innerHTML=originalLabel;btn.disabled=false;btn.classList.remove('bg-green-600')},20000);
+                if(!document.getElementById('keepDataAfterSubmit')?.checked){
+                  this.reset();
+                  const dtEl = document.getElementById('testRequestDate');
+                  if (dtEl) {
+                    const now = new Date();
+                    const tz = now.getTimezoneOffset() * 60000;
+                    dtEl.value = new Date(now.getTime() - tz).toISOString().slice(0, 16);
+                  }
+                }
+                return;
+              } else {
+                const t2 = await resp2.text();
+                throw new Error(t2 || `HTTP ${resp2.status}`);
+              }
+            } catch (e2) {
+              alert('Gửi thất bại (fallback): ' + e2);
+            }
+          } else {
+            alert("Gửi thất bại: "+err);
+          }
+          btn.innerHTML=originalLabel;
+          btn.disabled=false;
+        }
+      };
+    }
+    submitForm("testRequestForm", 
+      SHEETDB_API_URL,
+      ()=>testRequestUploads);
+    // internal forms moved to DQA_internal.html
+
+    // Task tracking table: fetch data from endpoint and render
+    (function(){
+      const TASK_TRACKING_ENDPOINT = "https://phongdqakrd.app.n8n.cloud/webhook/4794bc52-4d4c-4326-b2cb-1b8388f20fb1";
+
+      function getCaseInsensitive(obj, keys) {
+        if (!obj) return "";
+        const lower = Object.keys(obj).reduce((acc,k)=>{acc[k.toLowerCase()] = obj[k];return acc;},{});
+        for (const key of keys) {
+          if (lower[key.toLowerCase()] !== undefined) return lower[key.toLowerCase()];
+        }
+        return "";
+      }
+
+      function renderStatusBadge(status) {
+        const s = (status || "").toString().toLowerCase();
+        if (s.includes("done") || s.includes("hoàn")) return '<span class="rounded px-2 py-1 bg-green-100 text-green-800">Hoàn thành</span>';
+        if (s.includes("progress") || s.includes("đang")) return '<span class="rounded px-2 py-1 bg-yellow-100 text-yellow-800">Đang thực hiện</span>';
+        if (s.includes("pending") || s.includes("chờ")) return '<span class="rounded px-2 py-1 bg-gray-100 text-gray-800">Chờ xử lý</span>';
+        return `<span class="rounded px-2 py-1 bg-gray-100 text-gray-800">${status || "-"}</span>`;
+      }
+
+      function toDDMMYYYY(value){
+        if(!value) return '';
+        // Accept formats like ISO, YYYY-MM-DD, or already DD/MM/YYYY
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return value;
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return value; // fallback to original if invalid
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
+
+      document.getElementById('taskTrackingForm').onsubmit = async function(e){
+      e.preventDefault();
+        
+        // Validation: At least one of email or department must be filled
+        const email = this.querySelector('input[name="senderEmail"]').value.trim();
+        const department = this.querySelector('select[name="department"]').value.trim();
+        
+        if (!email && !department) {
+          alert('Vui lòng nhập ít nhất một trong hai trường: Email hoặc Phòng ban');
+          return;
+        }
+        
+        const btn = document.getElementById('taskTrackingSearchBtn') || this.querySelector("button[type=submit]");
+        const originalSearchLabel = btn ? btn.textContent : "Tìm kiếm";
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = "<span class='spinner'></span><span class='ml-2'>Đang tìm...</span>";
+        }
+        const bodyEl = document.getElementById('trackingTableBody');
+        bodyEl.innerHTML = "<tr><td colspan='7' class='px-4 py-4 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+
+        // Build filter from form
+        const formData = new FormData(this);
+        const filter = {};
+        formData.forEach((v,k)=>{ filter[k] = v; });
+        // Build response field mapping from form (allow backend to choose keys; also used client-side)
+        const map = {
+          submissionDate: filter.resp_ngay_gui || 'submissionDate',
+          taskName: filter.resp_ten_cong_viec || 'taskName',
+          desiredDueDate: filter.resp_han_mong_muon || 'desiredDueDate',
+          completionDate: filter.resp_ngay_hoan_thanh || 'completionDate',
+          pic: filter.resp_phu_trach || 'pic',
+          status: filter.resp_trang_thai || 'status',
+          assigner: filter.resp_nguoi_giao_viec || 'assigner',
+        };
+
+        try {
+          // Use GET with query params per webhook requirement
+          const params = new URLSearchParams();
+          
+          // Add form fields to query params (excluding response mapping fields)
+          Object.keys(filter).forEach(k=>{
+            if (filter[k] !== undefined && filter[k] !== null) {
+              if (!k.startsWith('resp_')) {
+                // Map form field names to backend field names
+                const fieldMapping = {
+                  'senderEmail': 'requester_email',
+                  'department': 'requester_department'
+                };
+                const paramName = fieldMapping[k] || k;
+                params.append(paramName, filter[k]);
+              }
+            }
+          });
+          
+          // send response mapping using safe param names
+          const mappingParamMap = {
+            resp_ngay_gui: 'field_submission_date',
+            resp_ten_cong_viec: 'field_task_name',
+            resp_han_mong_muon: 'field_desired_due_date',
+            resp_ngay_hoan_thanh: 'field_completion_date',
+            resp_phu_trach: 'field_pic',
+            resp_trang_thai: 'field_status',
+            resp_nguoi_giao_viec: 'field_assigner'
+          };
+          Object.keys(mappingParamMap).forEach(src=>{
+            if (filter[src]) params.append(mappingParamMap[src], filter[src]);
+          });
+          params.append('_ts', Date.now().toString());
+          let url = `${TASK_TRACKING_ENDPOINT}?${params.toString()}`;
+
+          let resp = await fetch(url, { method: 'GET' });
+
+          if (!resp.ok) {
+            const errText = await resp.text();
+            throw new Error(errText);
+          }
+          let json = null;
+          let ct = resp.headers.get('content-type') || '';
+          if (ct.includes('application/json')) json = await resp.json();
+          else {
+            try { json = JSON.parse(await resp.text()); } catch { json = {}; }
+          }
+
+          const rows = Array.isArray(json) ? json
+                     : Array.isArray(json?.data) ? json.data
+                     : Array.isArray(json?.rows) ? json.rows
+                     : [];
+
+          if (!rows.length) {
+            bodyEl.innerHTML = "<tr><td colspan='7' class='px-4 py-6 text-center text-gray-500'>Không có dữ liệu</td></tr>";
+          } else {
+            const html = rows.map(r=>{
+              const assigner = getCaseInsensitive(r, [map.assigner,'assigner','nguoiGiaoViec','assignedTo']) || '-';
+              const submissionDate = toDDMMYYYY(getCaseInsensitive(r, [map.submissionDate,'ngayGui','createdAt','created_at'])) || '-';
+              const taskName = getCaseInsensitive(r, [map.taskName,'tenCongViec','name','title']) || '-';
+              const desiredDue = toDDMMYYYY(getCaseInsensitive(r, [map.desiredDueDate,'hanMongMuon','dueDate','due_date'])) || '-';
+              const doneDate = toDDMMYYYY(getCaseInsensitive(r, [map.completionDate,'ngayHoanThanh','completedAt','completed_at'])) || '-';
+              const pic = getCaseInsensitive(r, [map.pic,'phuTrach','owner','assignee']) || '-';
+              const status = getCaseInsensitive(r, [map.status,'trangThai']) || '';
+              return `
+                <tr>
+                  <td class="px-4 py-2">${assigner}</td>
+                  <td class="px-4 py-2">${submissionDate}</td>
+                  <td class="px-4 py-2">${desiredDue}</td>
+                  <td class="px-4 py-2">${doneDate}</td>
+                  <td class="px-4 py-2">${taskName}</td>
+                  <td class="px-4 py-2">${pic}</td>
+                  <td class="px-4 py-2">${renderStatusBadge(status)}</td>
+                </tr>`;
+            }).join('');
+            bodyEl.innerHTML = html;
+          }
+        } catch (err) {
+          bodyEl.innerHTML = `<tr><td colspan='7' class='px-4 py-6 text-center text-red-600'>Lỗi khi tải dữ liệu: ${String(err.message || err)}</td></tr>`;
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = originalSearchLabel || 'Tìm kiếm'; }
+        }
+      };
+    })();
+
+  </script>
+</body>
+</html>
