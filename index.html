@@ -335,9 +335,8 @@
   </style>
   <!-- JavaScript for dynamic logic/features -->
   <script>
-    // Endpoints for Form 1 (Test Request)
-      const SHEETDB_API_URL = "https://sheetdb.io/api/v1/bj5gyytpp16fa";
-      const UPLOAD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxa_KK_PO544DNTK9vE3AMjkkDe-bpOXZ9DRgdhvnGu6ngBDvnNRhuaP40m5VXvL7sTjA/exec";
+    // Endpoint n8n cho Form 1 (Test Request)
+      const N8N_SUBMIT_ENDPOINT = "https://xcqiyibqs.tino.page/webhook/Guiyeucau";
     // Sidebar navigation logic
     const navBtns = document.querySelectorAll('.nav-btn');
     const formSections = document.querySelectorAll('.form-section');
@@ -368,6 +367,17 @@
     // Gợi ý: trường "Hạn mong muốn có kết quả" đã có nhãn hiển thị, người dùng tự nhập
 
     // Dynamic fields logic for Test Request Form
+    function generateTaskCode(){
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2,'0');
+      const mm = String(now.getMonth()+1).padStart(2,'0');
+      const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let rand = '';
+      for (let i = 0; i < 6; i++) {
+        rand += charset.charAt(Math.floor(Math.random() * charset.length));
+      }
+      return `NCTN2.${dd}${mm}-${rand}`;
+    }
     // a. Purpose dropdown description
     const purposeDescriptions = {
       "Đánh giá SP mới": "Sản phẩm/linh kiện mới sắp SOP, cần kiểm tra độ bền và phù hợp tiêu chuẩn kỹ thuật trước khi sản xuất đại trà.",
@@ -468,89 +478,28 @@
 
     // Use upload widgets on each form
     let testRequestUploads = [];
-    // Specialized uploader for Form 1 using Google Apps Script
+    // Đính kèm: chỉ lưu danh sách tên file (không upload)
     (function setupTestRequestUploads(){
       const fileInput = document.getElementById('testRequestFiles');
       const uploadList = document.getElementById('testRequestUploadList');
       testRequestUploads = [];
-      function renderItem(name, url){
-        const itemDiv = document.createElement('div');
-        itemDiv.className = "flex items-center justify-between p-2 bg-blue-50 rounded";
-        itemDiv.innerHTML = `
-          <span>📄<span class="ml-2">${name}</span></span>
-          <a href="${url}" target="_blank" class="text-primary-blue underline">Xem</a>
-          <button class="ml-4 text-red-600 hover:underline font-bold" type="button">X</button>
-        `;
-        const idx = testRequestUploads.length;
-        testRequestUploads.push({ name, url });
-        itemDiv.querySelector('button').onclick = ()=>{
-          itemDiv.remove();
-          testRequestUploads[idx] = null;
-        };
-        uploadList.appendChild(itemDiv);
-      }
-      fileInput.addEventListener('change', async function(){
+      fileInput.addEventListener('change', function(){
         if (!this.files || this.files.length === 0) return;
         for (const file of this.files){
-          // Create a row with spinner first
           const rowDiv = document.createElement('div');
           rowDiv.className = "flex items-center justify-between p-2 bg-blue-50 rounded";
           rowDiv.innerHTML = `
             <span>📄<span class=\"ml-2\">${file.name}</span></span>
-            <span class=\"spinner\"></span>
+            <span class=\"text-gray-600 text-xs\">Sẽ gửi kèm (binary)</span>
+            <button class=\"ml-2 text-red-600 hover:underline font-bold\" type=\"button\">X</button>
           `;
+          const idx = testRequestUploads.length;
+          testRequestUploads.push({ name: file.name, file });
+          rowDiv.querySelector('button').onclick = ()=>{
+            rowDiv.remove();
+            testRequestUploads[idx] = null;
+          };
           uploadList.appendChild(rowDiv);
-          try{
-            const url = await new Promise((resolve, reject)=>{
-              const reader = new FileReader();
-              reader.onload = async ()=>{
-                try{
-                  const base64 = reader.result.split(',')[1];
-                  const form = new URLSearchParams();
-                  form.append('filedata', base64);
-                  form.append('filename', file.name);
-                  form.append('mimetype', file.type);
-                  const resp = await fetch(UPLOAD_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: form.toString()
-                  });
-                  if(!resp.ok) throw new Error('Upload failed');
-                  const raw = await resp.text();
-                  let parsedUrl = '';
-                  try{
-                    const j = JSON.parse(raw);
-                    parsedUrl = j.url || j.fileUrl || j.public_url || j.link || (j.data && j.data[0] && j.data[0].url) || '';
-                  }catch(_){
-                    const match = (raw || '').match(/https?:\/\/[^\s"']+/);
-                    parsedUrl = match ? match[0] : '';
-                  }
-                  resolve(parsedUrl || '#');
-                }catch(err){ reject(err); }
-              };
-              reader.onerror = ()=>reject(new Error('File read error'));
-              reader.readAsDataURL(file);
-            });
-            // Update the same row in place to show link and delete button
-            const idx = testRequestUploads.length;
-            testRequestUploads.push({ name: file.name, url });
-            rowDiv.innerHTML = `
-              <span>📄<span class=\"ml-2\">${file.name}</span></span>
-              <span class=\"text-green-700 bg-green-100 px-2 py-0.5 rounded text-xs\">Đã tải lên</span>
-              <span class=\"flex items-center gap-3\">
-                <a href=\"${url}\" target=\"_blank\" class=\"text-primary-blue underline\">Xem</a>
-                <button class=\"ml-2 text-red-600 hover:underline font-bold\" type=\"button\">X</button>
-              </span>
-            `;
-            rowDiv.querySelector('button').onclick = ()=>{
-              rowDiv.remove();
-              testRequestUploads[idx] = null;
-            };
-          }catch(err){
-            const spinnerEl = rowDiv.querySelector('.spinner');
-            if (spinnerEl) spinnerEl.outerHTML = `<span class=\"text-red-600\">Thất bại</span>`;
-            setTimeout(()=>{ try{ uploadList.removeChild(rowDiv);}catch(_){} }, 2000);
-          }
         }
         this.value = '';
       });
@@ -581,22 +530,37 @@
         btn.disabled = true;
         btn.innerHTML = "<span class='spinner'></span>";
         let data = toJSON(this);
-        let reqBody;
+        // Sinh Mã tác vụ ngay thời điểm submit
+        const taskCode = generateTaskCode();
+        let uploads = [];
         if(getUploads){
           if(formId === "testRequestForm"){
-            const uploads = getUploads();
+            uploads = getUploads() || [];
             const valid = (uploads || []).filter(Boolean);
             data.attachments = valid.map(u=>u.name || '').join(';');
-            data.attachmentUrls = valid.map(u=>u.url || '').join(';');
           } else {
-          data.attachments = getUploads();
-        }
+            data.attachments = getUploads();
+          }
         }
         if(formId==="testRequestForm"){
           // Map to index.html schema; replace removed checkbox fields with Specialreq
           const isSpecial = data.testType === 'special';
           const submissionRound = parseInt(data.sampleSubmissionNo || '0', 10) || 0;
-          const normalizedRequestDate = (data.requestDate || '').toString().slice(0,10);
+          
+          // Format requestDate to YYYY-MM-DD HH:mm with GMT +7
+          let normalizedRequestDate = '';
+          if (data.requestDate) {
+            const date = new Date(data.requestDate);
+            // Add 7 hours for GMT +7
+            const gmt7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000));
+            const year = gmt7Date.getUTCFullYear();
+            const month = String(gmt7Date.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(gmt7Date.getUTCDate()).padStart(2, '0');
+            const hours = String(gmt7Date.getUTCHours()).padStart(2, '0');
+            const minutes = String(gmt7Date.getUTCMinutes()).padStart(2, '0');
+            normalizedRequestDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+          }
+          
           const normalizedDesiredDate = (data.desiredCompletionDate || '').toString().slice(0,10);
           
           // Ensure all required fields have valid values
@@ -616,6 +580,7 @@
             kiemtraDacBiet: isSpecial ? '1' : '0',
             Receiver: String(data.personReceived || '').trim(),
             isResubmission: submissionRound >= 2 ? '1' : '0',
+            taskCode: taskCode,
             // Legacy checkbox fields kept for schema compatibility but left empty
             chiSoCoBan: '0',
             chiSoCoBanDesc: '',
@@ -635,104 +600,63 @@
           // Ensure all fields are present and have valid string values
           const flat = {};
           Object.keys(mapped).forEach(k => { 
-            flat[k] = mapped[k] || ''; // Use empty string for null/undefined/empty values
+            flat[k] = mapped[k] || '';
           });
-          
-          reqBody = { data: flat };
-        } else {
-          // other forms unchanged
-          reqBody = { data: [data] };
-        }
-        try{
-          const resp = await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Accept": "application/json" },
-            body: JSON.stringify(reqBody)
+          // Gửi POST multipart/form-data (kèm file nhị phân)
+          const form = new FormData();
+          Object.keys(flat).forEach(k=>{
+            if(flat[k] !== undefined && flat[k] !== null) form.append(k, flat[k]);
           });
-          if(resp.ok){
-            btn.innerHTML="Đã gửi!";
-            btn.classList.add("bg-green-600");
-            setTimeout(()=>{btn.innerHTML=originalLabel;btn.disabled=false;btn.classList.remove("bg-green-600")},20000);
-            // Reset only when user does not want to keep data
-            if(!(formId === 'testRequestForm' && document.getElementById('keepDataAfterSubmit')?.checked)){
-            this.reset();
-              // restore current datetime for readonly field
-              const dtEl = document.getElementById('testRequestDate');
-              if (dtEl) {
-                const now = new Date();
-                const tz = now.getTimezoneOffset() * 60000;
-                dtEl.value = new Date(now.getTime() - tz).toISOString().slice(0, 16);
-              }
+          form.append('_ts', Date.now().toString());
+          const validUploads = (uploads || []).filter(Boolean);
+          for (const u of validUploads) {
+            if (u && u.file) {
+              form.append('files', u.file, u.name || u.file.name || 'upload');
             }
-          }else {
-            const text = await resp.text();
-            throw new Error(text || `HTTP ${resp.status}`);
           }
-        }catch(err){
-          // Fallback: if SheetDB rejects due to bad data format, retry with basic columns only
-          if (formId === 'testRequestForm' && /bad data format/i.test(String(err.message || err))) {
-            try {
-              const isSpecial = data.testType === 'special';
-              const noteCombined = `${data.notes || ''}${isSpecial ? `\nSpecialreq: ${(document.getElementById('specialRequestDesc')?.value || '')}` : ''}`.trim();
-              const normalizedRequestDate2 = (data.requestDate || '').toString().slice(0,10);
-              const normalizedDesiredDate2 = (data.desiredCompletionDate || '').toString().slice(0,10);
-              const basic = {
-                requesterName: String(data.senderName || ''),
-                email: String(data.senderEmail || ''),
-                requestDate: String(normalizedRequestDate2 || ''),
-                deptRequest: String(data.department || ''),
-                itemName: String(data.productName || ''),
-                itemCode: String(data.productCode || ''),
-                purpose: String(data.requestPurpose || ''),
-                vendor: String(data.supplier || ''),
-                qtySamples: String(data.numSamples || ''),
-                desiredDate: String(normalizedDesiredDate2 || ''),
-                changeReq: noteCombined,
-                attachments: String(data.attachments || '')
-              };
-              const fallbackBody = { data: basic };
-              const resp2 = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(fallbackBody)
-              });
-              if (resp2.ok) {
-                btn.innerHTML = 'Đã gửi!';
-                btn.classList.add('bg-green-600');
-                setTimeout(()=>{btn.innerHTML=originalLabel;btn.disabled=false;btn.classList.remove('bg-green-600')},20000);
-                if(!document.getElementById('keepDataAfterSubmit')?.checked){
-                  this.reset();
-                  const dtEl = document.getElementById('testRequestDate');
-                  if (dtEl) {
-                    const now = new Date();
-                    const tz = now.getTimezoneOffset() * 60000;
-                    dtEl.value = new Date(now.getTime() - tz).toISOString().slice(0, 16);
-                  }
+          try{
+            const resp = await fetch(endpoint, { method: 'POST', body: form });
+            if(resp.ok){
+              btn.innerHTML="Đã gửi!";
+              btn.classList.add("bg-green-600");
+              setTimeout(()=>{btn.innerHTML=originalLabel;btn.disabled=false;btn.classList.remove("bg-green-600")},20000);
+              // Reset only when user does not want to keep data
+              if(!(formId === 'testRequestForm' && document.getElementById('keepDataAfterSubmit')?.checked)){
+                this.reset();
+                // restore current datetime for readonly field
+                const dtEl = document.getElementById('testRequestDate');
+                if (dtEl) {
+                  const now = new Date();
+                  const tz = now.getTimezoneOffset() * 60000;
+                  dtEl.value = new Date(now.getTime() - tz).toISOString().slice(0, 16);
                 }
-                return;
-              } else {
-                const t2 = await resp2.text();
-                throw new Error(t2 || `HTTP ${resp2.status}`);
               }
-            } catch (e2) {
-              alert('Gửi thất bại (fallback): ' + e2);
+            } else {
+              const text = await resp.text();
+              throw new Error(text || `HTTP ${resp.status}`);
             }
-          } else {
+          } catch(err){
             alert("Gửi thất bại: "+err);
+            btn.innerHTML=originalLabel;
+            btn.disabled=false;
           }
+          return;
+        } else {
+          // Các form khác (nếu có) hiện không sử dụng
           btn.innerHTML=originalLabel;
           btn.disabled=false;
+          return;
         }
       };
     }
     submitForm("testRequestForm", 
-      SHEETDB_API_URL,
+      N8N_SUBMIT_ENDPOINT,
       ()=>testRequestUploads);
     // internal forms moved to DQA_internal.html
 
     // Task tracking table: fetch data from endpoint and render
     (function(){
-      const TASK_TRACKING_ENDPOINT = "https://xcqiyibqs.tino.page/webhook/4794bc52-4d4c-4326-b2cb-1b8388f20fb1";
+      const TASK_TRACKING_ENDPOINT = "https://xcqiyibqs.tino.page/webhook-test/4794bc52-4d4c-4326-b2cb-1b8388f20fb1";
 
       function getCaseInsensitive(obj, keys) {
         if (!obj) return "";
